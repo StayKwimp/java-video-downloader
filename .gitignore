@@ -19,3 +19,13 @@ gradle-app.setting
 .project
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
+
+
+# Remove unneccesary program testing files
+*.mp3
+*.mp4
+*.log
+
+# Should be self-explanatory
+*.DS_Store
+
