@@ -33,14 +33,6 @@ public class DownloadProgessBar {
         previousBytesReceived = 0;
 
         fillConversionMap();
-
-        // try {
-        //     cols = TerminalBuilder.builder().dumb(true).build().getWidth();
-        //     // cols = TerminalBuilder.terminal().getWidth();
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        //     cols = 80; // default to 80 columns
-        // }
     }
 
     public static void end() {

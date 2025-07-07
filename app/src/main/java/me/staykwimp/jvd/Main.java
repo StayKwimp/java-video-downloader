@@ -80,7 +80,7 @@ public class Main {
 
         int itag = getItagInput("\nEnter itag ('audio' for only audio) > ", scan);
 
-        downloader.accept(new NewDownloadVisitor(itag, saveDirectory, (i, d) -> {
+        downloader.accept(new DownloadVisitor(itag, saveDirectory, (i, d) -> {
             return getItagInput("\nItag " + i + " is invalid!\nPlease enter a new itag > ", scan);
         }));
     }
@@ -105,7 +105,7 @@ public class Main {
 
         int itag = getItagInput("\nEnter default itag for whole playlist ('audio' for only audio) > ", scan);
 
-        playlist.accept(new NewDownloadVisitor(itag, saveDirectory, (i, d) -> {
+        playlist.accept(new DownloadVisitor(itag, saveDirectory, (i, d) -> {
             System.out.println(d.accept(new InfoVisitor()));
             System.out.println(d.accept(new AvailableQualityVisitor(qualityMap)));
             return getItagInput("\nItag " + i + " is not valid for video '" + d.getVideoTitle() + "'!\nPlease enter a new itag > ", scan);
