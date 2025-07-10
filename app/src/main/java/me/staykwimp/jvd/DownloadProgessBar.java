@@ -83,7 +83,7 @@ public class DownloadProgessBar {
 
 
     private static String getProgressBar(long byteDownloadSpeed, long fileSize, long bytesSaved) {
-        String downloadSpeedAndFilesize = " " + reduceSize(bytesSaved) + " / " + reduceSize(fileSize) + " (" + reduceSize(byteDownloadSpeed) + "/s)";
+        String downloadSpeedAndFilesize = " " + reduceSize(bytesSaved, 2) + " / " + reduceSize(fileSize, 2) + " (" + reduceSize(byteDownloadSpeed) + "/s)";
 
         int maxWidth = Math.max(40, cols - downloadSpeedAndFilesize.length() - 4);
 
@@ -93,9 +93,7 @@ public class DownloadProgessBar {
         String bar = String.valueOf('#').repeat(Math.max(0, filled)) +
                 ".".repeat(Math.max(0, remaining));
 
-        return "[]" + bar + "] " + downloadSpeedAndFilesize;
-        // out.printf("[%s] %s\r", bar, downloadSpeedAndFilesize);
-        // out.flush();
+        return "[" + bar + "] " + downloadSpeedAndFilesize;
     }
 
 
@@ -117,7 +115,7 @@ public class DownloadProgessBar {
         double size = (double) byteSize * 10;
 
         int divideCount = 0;
-        while (size > 10000 && divideCount < maxDivideCount) {
+        while (size > 15000 && divideCount < maxDivideCount) {
             size /= 1000;
             divideCount++;
         }

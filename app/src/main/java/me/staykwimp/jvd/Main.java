@@ -20,7 +20,7 @@ public class Main {
     public static final QueueDownloader downloader = new QueueDownloader();
     public static final Thread downloaderThread = new Thread(downloader);
 
-    public static final String VERSION = "v1.1b_01";
+    public static final String VERSION = "v1.1b_02";
     public static final String BUILD_DATE = getBuildDate();
 
     private static final LinkedHashMap<String, Filter> qualityMap = new LinkedHashMap<>();
@@ -67,7 +67,7 @@ public class Main {
 
 
         while (true) {
-            System.out.print("java-video-downloader@v1.1b_01 > ");
+            System.out.print("java-video-downloader@" + VERSION + " > ");
             input = scan.nextLine();
             String[] command = input.split("\s+");
             

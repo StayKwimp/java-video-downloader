@@ -69,14 +69,14 @@ public class DownloadQueue {
 
             builder.append("The download queue currently contains " + downloadQueue.size() + " videos:");
 
-            downloadQueue.forEach(dd -> {
-                builder.append("\n    ");
-                Downloader d = dd.downloader();
+            for (int i = 0; i < downloadQueue.size(); i++) {
+                builder.append("\n    " + i + ". ");
+                Downloader d = downloadQueue.get(i).downloader();
                 if (d instanceof YoutubeVideoDownloader)
-                    builder.append(((YoutubeVideoDownloader) d).toString(dd.visitor().getDefaultItag()));
+                    builder.append(((YoutubeVideoDownloader) d).toString(downloadQueue.get(i).visitor().getDefaultItag()));
                 else
                     builder.append(d.toString());
-            });
+            }
 
 
             return builder.toString();
