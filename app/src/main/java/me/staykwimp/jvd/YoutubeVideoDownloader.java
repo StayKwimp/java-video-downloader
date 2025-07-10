@@ -257,11 +257,12 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
     /* 
-     * Returns true if and only if the video can actually be accessed (is not private or age rescritected)
+     * Returns true if and only if the video can actually be accessed (is not private or age rescritected or member-only)
      */
     public boolean isValid() {
         try {
             youtube.getAuthor();
+            youtube.streams();
             return true;
         } catch (Exception e) {
             return false;
