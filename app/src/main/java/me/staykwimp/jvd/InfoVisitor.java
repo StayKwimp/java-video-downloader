@@ -3,7 +3,7 @@ package me.staykwimp.jvd;
 public class InfoVisitor implements BaseVisitor<String> {
     public String visit(YoutubeVideoDownloader downloader) {
         StringBuilder builder = new StringBuilder();
-        
+    
         builder.append("=======================================================\n");
         builder.append("Video: ");
         builder.append(downloader.getVideoTitle());
@@ -12,6 +12,7 @@ public class InfoVisitor implements BaseVisitor<String> {
         builder.append(" views\nBy: ");
         builder.append(downloader.getChannelName());
         builder.append("\n=======================================================");
+        
         
         return builder.toString();
     }

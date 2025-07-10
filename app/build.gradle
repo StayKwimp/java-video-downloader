@@ -28,7 +28,13 @@ repositories {
     mavenCentral()
 
     // Use Jitpack for resolving Git projects
-    maven{ url 'https://jitpack.io' }
+    maven { 
+        url 'https://jitpack.io'
+    }
+
+    maven {
+        url "https://repo.bluecolored.de/releases"
+    }
 }
 
 dependencies {
@@ -42,9 +48,12 @@ dependencies {
     implementation 'com.github.felipeucelli:javatube:-SNAPSHOT'
 
     // JLine for console width
-    implementation 'org.jline:jline:3.30.0'
+    // implementation 'org.jline:jline:3.30.0'
 
     implementation 'org.json:json:20250517'
+
+    // Update checker
+    implementation "com.technicjelle:UpdateChecker:2.5.1"
 }
 
 application {
@@ -61,5 +70,6 @@ tasks.named('test') {
 jar {
     manifest {
         attributes 'Main-Class': application.mainClass
+        attributes 'Build-Date': new Date().format("dd-MM-yyyy HH:mm:ss")
     }
 }

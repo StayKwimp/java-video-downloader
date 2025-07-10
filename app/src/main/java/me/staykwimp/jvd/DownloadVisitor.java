@@ -1,30 +1,30 @@
 package me.staykwimp.jvd;
 
-import java.util.function.BiFunction;
-
 public class DownloadVisitor implements BaseVisitor<Void> {
     private final int defaultItag;
     private final String saveDirectory;
-    private final BiFunction<Integer, YoutubeVideoDownloader, Integer> onInvalidItag;
+    // private final BiFunction<Integer, YoutubeVideoDownloader, Integer> onInvalidItag;
 
 
-    public DownloadVisitor(int defaultItag, String saveDirectory, BiFunction<Integer, YoutubeVideoDownloader, Integer> onInvalidItag) {
+    public DownloadVisitor(int defaultItag, String saveDirectory) {
         this.defaultItag = defaultItag;
         this.saveDirectory = saveDirectory;
-        this.onInvalidItag = onInvalidItag;
     }
 
 
     public Void visit(YoutubePlaylistDownloader playlist) {
         for (YoutubeVideoDownloader downloader: playlist.getDownloadersFromPlaylist(saveDirectory)) {
+            if (!downloader.isValid()) {
+                System.out.println("Skipping YouTube URL " + downloader.getUrl() + " because it is private or otherwise inaccessible.");
+                continue;
+            }
             System.out.println("Downloading " + downloader.getVideoTitle());
             downloader.accept(this);
         }
         return null;
     }
 
-
-    // can also be used to more safely
+    
     public Void visit(YoutubeVideoDownloader downloader) {
         if (defaultItag == -1) {  // itag -1 has audio only
             try {
@@ -44,7 +44,8 @@ public class DownloadVisitor implements BaseVisitor<Void> {
                     downloader.downloadVideo(tempItag, "video");
                     successfulDownload = true;
                 } catch (NullPointerException e) {
-                    tempItag = onInvalidItag.apply(defaultItag, downloader);
+                    // tempItag = onInvalidItag.apply(defaultItag, downloader);
+                    break; // skip any invalid videos (invalid itags are handled by addToQueueVisitor)
                 }
             }
 
@@ -54,5 +55,10 @@ public class DownloadVisitor implements BaseVisitor<Void> {
 
         downloader.deleteTemporaryDownloadFiles();
         return null;
+    }
+
+
+    public int getDefaultItag() {
+        return defaultItag;
     }
 }

@@ -24,6 +24,7 @@ gradle-app.setting
 # Remove unneccesary program testing files
 *.mp3
 *.mp4
+*.webm
 *.log
 
 # Should be self-explanatory
