@@ -55,17 +55,21 @@ public class Main {
     }
 
     public static void welcome() {
-        UpdateChecker updateChecker = new UpdateChecker("StayKwimp", "java-video-downloader", VERSION);
-        updateChecker.check();
-        
-
         System.out.println("Java Video Downloader");
         System.out.print("Version " + VERSION);
-        if (updateChecker.isUpdateAvailable())
-            System.out.println(" (new version available: v" + updateChecker.getLatestVersion() + ")");
-        else
-            System.out.println();
-        System.out.println("Build " + BUILD_DATE + "\nBy StayKwimp_\n");
+
+        try {
+            UpdateChecker updateChecker = new UpdateChecker("StayKwimp", "java-video-downloader", VERSION);
+            updateChecker.check();
+            if (updateChecker.isUpdateAvailable())
+                System.out.println(" (new version available: v" + updateChecker.getLatestVersion() + ")");
+            else
+                System.out.println();
+        } catch (Exception e) {
+            System.out.println("\nCould not check for updates");
+        } finally {
+            System.out.println("Build " + BUILD_DATE + "\nBy StayKwimp_\n");
+        }
     }
 
 
