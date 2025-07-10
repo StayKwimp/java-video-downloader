@@ -13,6 +13,8 @@ import com.github.felipeucelli.javatube.*;
 import com.github.felipeucelli.javatube.StreamQuery.Filter;
 import com.github.felipeucelli.javatube.exceptions.*;
 
+import com.technicjelle.UpdateChecker;
+
 public class Main {
     public final static String saveDirectory = "";
     public static final String workingDirectory = System.getProperty("user.dir");
@@ -53,7 +55,17 @@ public class Main {
     }
 
     public static void welcome() {
-        System.out.println("Java Video Downloader\nVersion " + VERSION + "\nBuild " + BUILD_DATE + "\nBy StayKwimp_\n");
+        UpdateChecker updateChecker = new UpdateChecker("StayKwimp", "java-video-downloader", VERSION);
+        updateChecker.check();
+        
+
+        System.out.println("Java Video Downloader");
+        System.out.print("Version " + VERSION);
+        if (updateChecker.isUpdateAvailable())
+            System.out.println(" (new version available: v" + updateChecker.getLatestVersion() + ")");
+        else
+            System.out.println();
+        System.out.println("Build " + BUILD_DATE + "\nBy StayKwimp_\n");
     }
 
 

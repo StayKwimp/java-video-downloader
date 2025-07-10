@@ -28,7 +28,13 @@ repositories {
     mavenCentral()
 
     // Use Jitpack for resolving Git projects
-    maven{ url 'https://jitpack.io' }
+    maven { 
+        url 'https://jitpack.io'
+    }
+
+    maven {
+        url "https://repo.bluecolored.de/releases"
+    }
 }
 
 dependencies {
@@ -45,6 +51,9 @@ dependencies {
     // implementation 'org.jline:jline:3.30.0'
 
     implementation 'org.json:json:20250517'
+
+    // Update checker
+    implementation "com.technicjelle:UpdateChecker:2.5.1"
 }
 
 application {
