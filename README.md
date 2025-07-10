@@ -18,5 +18,5 @@ Built .jar files are available in the [Releases](https://github.com/StayKwimp/ja
 5. The built jar is now available in the `app/build/libs/` directory
 
 # Credits
-To make downloading from YouTube possible, I've used the JavaTube library available on GitHub. This library is available under the GNU General Public License v3.0. You can find the source code at [https://github.com/felipeucelli/JavaTube](https://github.com/felipeucelli/JavaTube). Many thanks to them!
+To make downloading from YouTube possible, I've used the JavaTube library available on GitHub. You can find the source code at [https://github.com/felipeucelli/JavaTube](https://github.com/felipeucelli/JavaTube). Many thanks to them!
 
