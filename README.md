@@ -10,3 +10,6 @@ The downloader requires Java 21 (newer versions are untested). It also requires 
 3. On Unix: make sure `gradlew` is executable (`chmod +x ./gradlew`)
 4. Build the project with  `./gradlew app:shadowJar`. This will include any neccesary dependencies in the jar file.
 5. The built jar is now available in the `app/build/libs/` directory
+
+# Credits
+To make downloading from YouTube possible, I've used the JavaTube library available on GitHub. Many thanks to them!

@@ -5,8 +5,6 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
-// import org.jline.terminal.TerminalBuilder;
-// import java.io.IOException;
 
 public class DownloadProgessBar {
     private static long timeSinceLastProgressbarCall = 0;
@@ -15,6 +13,14 @@ public class DownloadProgessBar {
     private static final Map<Integer, String> conversionMap = new HashMap<>(5);
     private static boolean filledConversionMap = false;
     private static final int COOLDOWN = 200;
+
+    // when true, displays no progress bar (but still updates the fields below)
+    public static boolean silent = true;
+
+    private static long latestFileSize = 0;
+    private static long latestByteDownloadSpeed = 0;
+    private static long latestBytesSaved = 0;
+
 
     private static void fillConversionMap() {
         if (!filledConversionMap) {
@@ -28,19 +34,29 @@ public class DownloadProgessBar {
     }
 
     // resets field values
-    public static void ready() {
-        timeSinceLastProgressbarCall = 0;
+    public static void ready(String downloadInformation) {
+        timeSinceLastProgressbarCall = System.currentTimeMillis();
         previousBytesReceived = 0;
+        latestBytesSaved = 0;
+        latestFileSize = 0;
 
         fillConversionMap();
+
+        if (!silent)
+            System.out.println("Currently downloading " + downloadInformation);
     }
 
-    public static void end() {
+    public static void end(String downloadInformation) {
+        if (silent) return;
+
         PrintStream out = System.out;
         out.print("\n");
         out.flush();
+        out.println("Finished downloading " + downloadInformation);
     }
 
+
+    // called by thread that is downloading a video
     public static void displayProgressBar(long bytesReceived, long fileSize) {
         long currentTime = System.currentTimeMillis();
         long timeDiff = currentTime - timeSinceLastProgressbarCall + 1;  // +1 to prevent divison by zero
@@ -51,14 +67,22 @@ public class DownloadProgessBar {
             timeSinceLastProgressbarCall = currentTime;
             previousBytesReceived = bytesReceived;
 
-            long byteDownloadSpeed = bytesReceivedSinceLastCall * 1000 / timeDiff;
+            latestByteDownloadSpeed = bytesReceivedSinceLastCall * 1000 / timeDiff;
+            latestFileSize = fileSize;
+            latestBytesSaved = bytesReceived;
 
-            displayProgressBar(byteDownloadSpeed, fileSize, bytesReceived);
+            
+            if (silent) return;
+
+            PrintStream out = System.out;
+
+            out.print(getProgressBar(latestByteDownloadSpeed, fileSize, bytesReceived) + "\r");
+            out.flush();
         }
     }
 
 
-    public static void displayProgressBar(long byteDownloadSpeed, long fileSize, long bytesSaved) {
+    private static String getProgressBar(long byteDownloadSpeed, long fileSize, long bytesSaved) {
         String downloadSpeedAndFilesize = " " + reduceSize(bytesSaved) + " / " + reduceSize(fileSize) + " (" + reduceSize(byteDownloadSpeed) + "/s)";
 
         int maxWidth = Math.max(40, cols - downloadSpeedAndFilesize.length() - 4);
@@ -68,19 +92,23 @@ public class DownloadProgessBar {
 
         String bar = String.valueOf('#').repeat(Math.max(0, filled)) +
                 ".".repeat(Math.max(0, remaining));
-        
-        
-        PrintStream out = System.out;
 
-        out.printf("[%s] %s\r", bar, downloadSpeedAndFilesize);
-        out.flush();
+        return "[]" + bar + "] " + downloadSpeedAndFilesize;
+        // out.printf("[%s] %s\r", bar, downloadSpeedAndFilesize);
+        // out.flush();
+    }
+
+
+    // Returns a progress bar string with the latest information regarding a download
+    public static String getLatestProgressBar() {
+        return getProgressBar(latestByteDownloadSpeed, latestFileSize, latestBytesSaved);
     }
 
 
     // returns a string with the reduced size
-    // with input 10 000 000 this returns: 10 MB
+    // with input 10 000 000 this returns: 10.0 MB
     public static String reduceSize(long byteSize) {
-        return reduceSize(byteSize, 1000);
+        return reduceSize(byteSize, 5);
     }
 
     public static String reduceSize(long byteSize, int maxDivideCount) {

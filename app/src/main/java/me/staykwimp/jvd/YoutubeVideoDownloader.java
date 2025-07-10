@@ -2,6 +2,7 @@ package me.staykwimp.jvd;
 
 import java.io.IOException;
 import java.util.ArrayList;
+
 import java.io.File;
 
 import com.github.felipeucelli.javatube.*;
@@ -32,6 +33,15 @@ public class YoutubeVideoDownloader implements Downloader {
         }
     }
 
+    public Stream getStream(int itag) {
+        try {
+            return youtube.streams().getByItag(itag);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public StreamQuery filterStreams(Filter filters) throws Exception {
         return youtube.streams().filter(filters);
     }
@@ -40,14 +50,15 @@ public class YoutubeVideoDownloader implements Downloader {
         if (videoFilename == null) {
             boolean validStream = false;
             label: try {
-                DownloadProgessBar.ready();
                 Stream stream = youtube.streams().getByItag(itag);
                 if (stream == null)
                     break label;
                 
+                DownloadProgessBar.ready(this.toString(stream));
+                
                 validStream = true;
                 stream.download("", fileName, DownloadProgessBar::displayProgressBar);
-                DownloadProgessBar.end();
+                DownloadProgessBar.end(this.toString(stream));
                 
 
                 this.videoFilename = fileName + this.getFileExtension(itag);
@@ -63,18 +74,23 @@ public class YoutubeVideoDownloader implements Downloader {
         else throw new NoSuchMethodError("downloadVideo can't be successfully called more than once per object.");
     }
 
+
+    // downloads the audio of a youtube video
+    // throws a NullPointerException when no audio stream is present
     public void downloadAudio(String fileName) throws NullPointerException {
         if (audioFilename == null) {
             boolean validStream = false;
             label: try {
-                DownloadProgessBar.ready();
                 Stream stream = youtube.streams().getOnlyAudio();
                 if (stream == null)
                     break label;
+
+
+                DownloadProgessBar.ready(this.toString(stream));
                 
                 validStream = true;
                 stream.download("", fileName, DownloadProgessBar::displayProgressBar);
-                DownloadProgessBar.end();
+                DownloadProgessBar.end(this.toString(stream));
 
                 this.audioFilename = fileName + getFileExtension(youtube.streams().getOnlyAudio());
             } catch (Exception e) {
@@ -134,6 +150,10 @@ public class YoutubeVideoDownloader implements Downloader {
 
     public long getVideoLikes() {
         throw new UnsupportedOperationException("Downloader can't get video likes (yet?)");
+    }
+
+    public String getUrl() {
+        return youtube.getUrl();
     }
 
     public String getSaveDirectory() {
@@ -220,5 +240,42 @@ public class YoutubeVideoDownloader implements Downloader {
     // yoinked form JavaTube, removed the . replacement
     private static String safeFileName(String s){
         return s.replaceAll("[\"'#$%*,:;<>?\\\\^|~/]", " ");
+    }
+
+    public String toString() {
+        return "YouTube video: " + this.getVideoTitle();
+    }
+
+    public String toString(Stream stream) {
+        if (stream.getResolution() == null)
+            return this.toString() + "  |  audio  " + DownloadProgessBar.reduceSize(stream.getFileSize(), 2); 
+        return this.toString() + "  |  " + stream.getResolution() + "  " + DownloadProgessBar.reduceSize(stream.getFileSize(), 2);
+    }
+
+    public String toString(int itag) {
+        return this.toString(this.getStream(itag));
+    }
+
+    /* 
+     * Returns true if and only if the video can actually be accessed (is not private or age rescritected)
+     */
+    public boolean isValid() {
+        try {
+            youtube.getAuthor();
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /*
+     * Returns true if and only if the itag supplied contains at least one stream
+     */
+    public boolean isValidItag(int itag) {
+        try {
+            return youtube.streams().getByItag(itag) != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

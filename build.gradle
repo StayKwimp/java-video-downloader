@@ -42,7 +42,7 @@ dependencies {
     implementation 'com.github.felipeucelli:javatube:-SNAPSHOT'
 
     // JLine for console width
-    implementation 'org.jline:jline:3.30.0'
+    // implementation 'org.jline:jline:3.30.0'
 
     implementation 'org.json:json:20250517'
 }
@@ -61,5 +61,6 @@ tasks.named('test') {
 jar {
     manifest {
         attributes 'Main-Class': application.mainClass
+        attributes 'Build-Date': new Date().format("dd-MM-yyyy HH:mm:ss")
     }
 }

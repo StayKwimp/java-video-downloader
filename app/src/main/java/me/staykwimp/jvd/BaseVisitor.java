@@ -6,6 +6,7 @@ public interface BaseVisitor<R> {
             return visit((YoutubePlaylistDownloader) visitable);
         else if (visitable instanceof YoutubeVideoDownloader)
             return visit((YoutubeVideoDownloader) visitable);
+        // add more cases for visitable objects
         
         throw new ClassCastException("Cannot visit class of type " + visitable.getClass().getName());
     }
