@@ -80,6 +80,10 @@ public class DownloadQueue {
 
 
             return builder.toString();
+        } catch (Exception e) {
+            System.err.println("Failed to show contents of the download queue due to the following exception:");
+            e.printStackTrace(System.err);
+            return "";
         } finally {
             lock.unlock();
         }

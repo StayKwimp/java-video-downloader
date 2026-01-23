@@ -57,7 +57,7 @@ public class DownloadProgessBar {
 
 
     // called by thread that is downloading a video
-    public static void displayProgressBar(long bytesReceived, long fileSize) {
+    public static void displayProgressBar(Long bytesReceived, Long fileSize) {
         long currentTime = System.currentTimeMillis();
         long timeDiff = currentTime - timeSinceLastProgressbarCall + 1;  // +1 to prevent divison by zero
 

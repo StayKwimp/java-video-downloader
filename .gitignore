@@ -30,3 +30,6 @@ gradle-app.setting
 # Should be self-explanatory
 *.DS_Store
 
+**/app/bin/
+
+/videos

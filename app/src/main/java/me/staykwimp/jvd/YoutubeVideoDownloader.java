@@ -93,6 +93,8 @@ public class YoutubeVideoDownloader implements Downloader {
                 DownloadProgessBar.end(this.toString(stream));
 
                 this.audioFilename = fileName + getFileExtension(youtube.streams().getOnlyAudio());
+            } catch (org.json.JSONException e) {
+                System.err.println("JSONException occured in JavaTube while trying to download " + this.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -200,10 +202,23 @@ public class YoutubeVideoDownloader implements Downloader {
         return false;
     }
 
-    public void convertAudioToMp3(String outputFilename) {
+
+
+    // Creates a process builder used for converting audio to mp3.
+    // If addMetadata is set to true, we also add metadata to the mp3 file.
+    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata) {
+        String outputFile = saveDirectory + safeFileName(outputFilename) + ".mp3";
+        if (addMetadata)
+            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", "-metadata", "title=" + this.getVideoTitle().split(" - ")[0], "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), outputFile);
+        else
+            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", outputFile);
+    }
+
+
+    // Converts a downloaded Youtube stream to a .mp3 file.
+    public void convertAudioToMp3(String outputFilename, boolean addMetadata) {
         if (audioFilename != null) {
-            String outputFile = saveDirectory + safeFileName(outputFilename) + ".mp3";
-            ProcessBuilder ffmpegProcessBuilder = new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", outputFile);
+            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata);
             ffmpegProcessBuilder.redirectOutput(new File("ffmpeg.latest.log"))
                                 // .redirectError(Redirect.INHERIT)
                                 .redirectError(new File("ffmpeg.latest.log"));
@@ -211,14 +226,18 @@ public class YoutubeVideoDownloader implements Downloader {
                 Process ffmpegProcess = ffmpegProcessBuilder.start();
                 ffmpegProcess.waitFor();
             } catch (InterruptedException e) {
-                System.out.println("Got interrupted while ffmpeg is creating an mp3 file");
+                System.out.println("Got interrupted while ffmpeg is creating an mp3 file (how is this even possible?)");
             } catch (IOException e) {
-                System.out.println("Error while starting ffmpeg process: " + e.toString());
+                System.err.println("Error while starting ffmpeg process: " + e.toString());
                 e.printStackTrace();
             }
         }
     }
 
+
+    // Merges two downloaded Youtube streams into one file.
+    // YouTube stores its audio track as a separate itag, so we must download it separately.
+    // The idea behind this is to merge the video and audio file into one so it actually becomes watchable.
     public static void mergeTwoFFmpegFiles(String file1, String file2, String outputFile) {
 
         ProcessBuilder ffmpegProcessBuilder = new ProcessBuilder("ffmpeg", "-i", file1, "-i", file2, "-c", "copy", "-y", outputFile);
@@ -230,9 +249,9 @@ public class YoutubeVideoDownloader implements Downloader {
             // System.out.println(ffmpegProcess.info());
             ffmpegProcess.waitFor();
         } catch (InterruptedException e) {
-            System.out.println("Got interrupted while ffmpeg is merging files");
+            System.out.println("Got interrupted while ffmpeg is merging files (how is this even possible?)");
         } catch (IOException e) {
-            System.out.println("Error while starting ffmpeg process: " + e.toString());
+            System.err.println("Error while starting ffmpeg process: " + e.toString());
             e.printStackTrace();
         }
     }
@@ -247,8 +266,12 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
     public String toString(Stream stream) {
-        if (stream.getResolution() == null)
+        if (stream == null) {
+            return this.toString();
+        } else if (stream.getResolution() == null) {
             return this.toString() + "  |  audio  " + DownloadProgessBar.reduceSize(stream.getFileSize(), 2); 
+        }
+            
         return this.toString() + "  |  " + stream.getResolution() + "  " + DownloadProgessBar.reduceSize(stream.getFileSize(), 2);
     }
 

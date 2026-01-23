@@ -4,6 +4,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class QueueDownloader implements Runnable {
     private Downloader currentDownloader = null;
+    private DownloadVisitor currentVisitor = null;
     private ReentrantLock lock = new ReentrantLock();
 
 
@@ -14,11 +15,12 @@ public class QueueDownloader implements Runnable {
                 lock.lock();
                 try {
                     currentDownloader = downloader.downloader();
+                    currentVisitor = downloader.visitor();
                 } finally {
                     lock.unlock();
                 }
                 
-                currentDownloader.accept(downloader.visitor());
+                currentDownloader.accept(currentVisitor);
                 currentDownloader = null;
             } catch (InterruptedException e) {
                 return; // this code is reached when downloader thread is interrupted while waiting for downloadQueue

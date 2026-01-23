@@ -12,6 +12,8 @@ public class DownloadVisitor implements BaseVisitor<Void> {
     }
 
 
+    // Downloads a Youtube Playlist
+    // Playlists are regarded as a list of YoutubeVideoDownloaders
     public Void visit(YoutubePlaylistDownloader playlist) {
         for (YoutubeVideoDownloader downloader: playlist.getDownloadersFromPlaylist(saveDirectory)) {
             if (!downloader.isValid()) {
@@ -25,11 +27,12 @@ public class DownloadVisitor implements BaseVisitor<Void> {
     }
 
     
+    // Downloads a youtube video
     public Void visit(YoutubeVideoDownloader downloader) {
         if (defaultItag == -1) {  // itag -1 has audio only
             try {
                 downloader.downloadAudio("audio");
-                downloader.convertAudioToMp3(downloader.getVideoTitle());
+                downloader.convertAudioToMp3(downloader.getVideoTitle(), true);
             } catch (NullPointerException e) {
                 System.out.println("Video does not have audio!");
                 return null;

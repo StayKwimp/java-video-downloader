@@ -51,6 +51,7 @@ public class CommandHandler {
         System.out.println("    view            - shows what's currently in the download queue");
         System.out.println("    show-progress   - shows the download progress bar (Q to quit this mode)");
         System.out.println("    quit            - closes the program (waits for last video to download)");
+        System.out.println("    exit            - does the same as quit");
         System.out.println("    help            - view this help message");
         System.out.println("    debug           - shows some debug information");
     }

@@ -17,7 +17,7 @@ public class AddToQueueVisitor implements BaseVisitor<Void> {
 
     public Void visit(YoutubeVideoDownloader downloader) {
         int videoItag = defaultItag;
-        while (!downloader.isValidItag(videoItag)) {
+        while (videoItag != -1 && !downloader.isValidItag(videoItag)) {
             videoItag = onInvalidItag.apply(videoItag, downloader);
         }
         DownloadQueue.addToQueue(new DecoratedDownloader(downloader, new DownloadVisitor(videoItag, saveDirectory)));

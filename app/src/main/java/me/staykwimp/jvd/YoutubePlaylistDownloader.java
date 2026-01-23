@@ -21,7 +21,11 @@ public class YoutubePlaylistDownloader implements Downloader {
         ArrayList<YoutubeVideoDownloader> downloaderArray = new ArrayList<>(getPlaylistSize());
         for (String url: this.getPlaylistUrls()) {
             try {
-                downloaderArray.add(new YoutubeVideoDownloader(url, saveDirectory));
+                // System.out.println("Found URL in playlist: " + url);
+                YoutubeVideoDownloader yvd = new YoutubeVideoDownloader(url, saveDirectory);
+                downloaderArray.add(yvd);
+                System.out.println("Found video: " + yvd);
+                Thread.sleep(250);
             } catch (Exception e) {
                 e.printStackTrace();
             }
