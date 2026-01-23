@@ -26,7 +26,7 @@ public class YoutubePlaylistDownloader implements Downloader {
                 YoutubeVideoDownloader yvd = new YoutubeVideoDownloader(url, saveDirectory);
                 downloaderArray.add(yvd);
                 System.out.println("Found video: " + yvd);
-                Thread.sleep(new Random().nextInt(200) + 200);
+                Thread.sleep(new Random().nextInt(200) + 200); // random delay
             } catch (Exception e) {
                 e.printStackTrace();
             }
