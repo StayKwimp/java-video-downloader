@@ -29,11 +29,11 @@ repositories {
 
     // Use Jitpack for resolving Git projects
     maven { 
-        url 'https://jitpack.io'
+        url = 'https://jitpack.io'
     }
 
     maven {
-        url "https://repo.bluecolored.de/releases"
+        url = "https://repo.bluecolored.de/releases"
     }
 }
 

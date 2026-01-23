@@ -203,13 +203,22 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
 
+    // Gets the song title.
+    // Sometimes titles have a title of the form "artist - song name", this method will only return that song name (or the whole title if the title doesn't follow that pattern)
+    private String getSongTitle() {
+        String[] videoTitle = this.getVideoTitle().split(" - ");
+        if (videoTitle.length == 0)
+            return videoTitle[0];
+        else
+            return videoTitle[1];
+    }
 
     // Creates a process builder used for converting audio to mp3.
     // If addMetadata is set to true, we also add metadata to the mp3 file.
     private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata) {
         String outputFile = saveDirectory + safeFileName(outputFilename) + ".mp3";
         if (addMetadata)
-            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", "-metadata", "title=" + this.getVideoTitle().split(" - ")[0], "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), outputFile);
+            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", "-metadata", "title=" + this.getSongTitle(), "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), outputFile);
         else
             return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", outputFile);
     }
