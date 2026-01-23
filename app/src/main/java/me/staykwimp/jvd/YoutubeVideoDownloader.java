@@ -207,7 +207,7 @@ public class YoutubeVideoDownloader implements Downloader {
     // Sometimes titles have a title of the form "artist - song name", this method will only return that song name (or the whole title if the title doesn't follow that pattern)
     private String getSongTitle() {
         String[] videoTitle = this.getVideoTitle().split(" - ");
-        if (videoTitle.length == 0)
+        if (videoTitle.length == 1)
             return videoTitle[0];
         else
             return videoTitle[1];

@@ -1,6 +1,7 @@
 package me.staykwimp.jvd;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.github.felipeucelli.javatube.*;
 
@@ -25,7 +26,7 @@ public class YoutubePlaylistDownloader implements Downloader {
                 YoutubeVideoDownloader yvd = new YoutubeVideoDownloader(url, saveDirectory);
                 downloaderArray.add(yvd);
                 System.out.println("Found video: " + yvd);
-                Thread.sleep(250);
+                Thread.sleep(new Random().nextInt(200) + 200);
             } catch (Exception e) {
                 e.printStackTrace();
             }
