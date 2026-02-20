@@ -239,10 +239,10 @@ public class YoutubeVideoDownloader implements Downloader {
         if (audioFilename != null) {
             ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata);
             ffmpegProcessBuilder.redirectOutput(new File("ffmpeg.latest.log"))
-                                // .redirectError(Redirect.INHERIT)
+                                // .redirectError(Redirect.INHERIT);
                                 .redirectError(new File("ffmpeg.latest.log"));
             try {
-                ffmpegProcessBuilder.command().forEach(s -> System.out.println(s));
+                // ffmpegProcessBuilder.command().forEach(s -> System.out.println(s));
                 Process ffmpegProcess = ffmpegProcessBuilder.start();
                 ffmpegProcess.waitFor();
             } catch (InterruptedException e) {
