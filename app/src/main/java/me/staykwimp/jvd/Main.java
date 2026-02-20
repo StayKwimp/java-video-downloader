@@ -22,7 +22,7 @@ public class Main {
     public static final QueueDownloader downloader = new QueueDownloader();
     public static final Thread downloaderThread = new Thread(downloader);
 
-    public static final String VERSION = "v1.2.0";
+    public static final String VERSION = "v1.2.1";
     public static final String BUILD_DATE = getBuildDate();
 
     private static final LinkedHashMap<String, Filter> qualityMap = new LinkedHashMap<>();

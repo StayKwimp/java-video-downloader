@@ -26,6 +26,7 @@ gradle-app.setting
 *.mp4
 *.webm
 *.log
+*.tar.gz
 
 # Should be self-explanatory
 *.DS_Store

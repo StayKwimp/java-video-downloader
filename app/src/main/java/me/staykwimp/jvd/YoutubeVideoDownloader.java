@@ -125,7 +125,12 @@ public class YoutubeVideoDownloader implements Downloader {
 
     public String getChannelName() {
         try {
-            return youtube.getAuthor();
+            String author = youtube.getAuthor().replaceAll("\\p{C}", "");
+
+            // Edge case where the author is an empty string
+            if (author.strip().isEmpty())
+                return "No author";
+            return author;
         } catch (Exception e) {
             e.printStackTrace();
             return "unknown channel";
@@ -134,7 +139,12 @@ public class YoutubeVideoDownloader implements Downloader {
 
     public String getVideoTitle() {
         try {
-            return youtube.getVidInfo().getJSONObject("videoDetails").getString("title");
+            String title = youtube.getVidInfo().getJSONObject("videoDetails").getString("title").replaceAll("\\p{C}", ""); // remove control characters from the string.
+
+            // Edge case where the video title is an empty string, or otherwise a collection of spaces:
+            if (title.isEmpty())
+                return "No title";
+            return title;
         } catch (Exception e) {
             e.printStackTrace();
             return "unknown video name";
@@ -155,7 +165,7 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
     public String getUrl() {
-        return youtube.getUrl();
+        return youtube.getUrl().replaceAll("\\p{C}", "");
     }
 
     public String getSaveDirectory() {
@@ -232,12 +242,14 @@ public class YoutubeVideoDownloader implements Downloader {
                                 // .redirectError(Redirect.INHERIT)
                                 .redirectError(new File("ffmpeg.latest.log"));
             try {
+                ffmpegProcessBuilder.command().forEach(s -> System.out.println(s));
                 Process ffmpegProcess = ffmpegProcessBuilder.start();
                 ffmpegProcess.waitFor();
             } catch (InterruptedException e) {
                 System.out.println("Got interrupted while ffmpeg is creating an mp3 file (how is this even possible?)");
             } catch (IOException e) {
                 System.err.println("Error while starting ffmpeg process: " + e.toString());
+                System.err.println("Output file name was: " + outputFilename);
                 e.printStackTrace();
             }
         }
