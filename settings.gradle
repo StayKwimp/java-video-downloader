@@ -9,3 +9,19 @@
 
 rootProject.name = 'java-video-downloader'
 include('app')
+
+dependencyResolutionManagement {
+    repositories {
+        // Use Maven Central for resolving dependencies.
+        mavenCentral()
+
+        // Use Jitpack for resolving Git projects
+        maven { 
+            url = 'https://jitpack.io'
+        }
+
+        maven {
+            url = "https://repo.bluecolored.de/releases"
+        }
+    }
+}
