@@ -27,18 +27,15 @@ java {
 
 dependencies {
     // Use JUnit Jupiter for testing.
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
-
-    // This dependency is used by the application.
-    implementation 'com.google.guava:guava:31.1-jre'
+    // testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1'
 
     // JavaTube Youtube video downloader
-    implementation 'com.github.felipeucelli:javatube:352e15fb24'
+    implementation 'com.github.felipeucelli:JavaTube:352e15fb24'
 
     // JLine for console width
     // implementation 'org.jline:jline:3.30.0'
 
-    implementation 'org.json:json:20250517'
+    implementation 'org.json:json:20260522'
 
     // Update checker
     implementation "com.technicjelle:UpdateChecker:2.5.1"

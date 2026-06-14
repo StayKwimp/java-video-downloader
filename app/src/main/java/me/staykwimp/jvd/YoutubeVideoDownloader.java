@@ -1,5 +1,23 @@
 package me.staykwimp.jvd;
 
+/*
+    Java Video Downloader
+    Copyright (C) 2026  StayKwimp
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -9,15 +27,25 @@ import com.github.felipeucelli.javatube.*;
 import com.github.felipeucelli.javatube.StreamQuery.Filter;
 
 public class YoutubeVideoDownloader implements Downloader {
-    private final Youtube youtube;
-    private String saveDirectory;
-    private String audioFilename;
-    private String videoFilename;
-    private String videoFileExtension;
+    protected Youtube youtube;
+    protected String saveDirectory;
+    protected String audioFilename;
+    protected String videoFilename;
+    protected String videoFileExtension;
 
     public YoutubeVideoDownloader(String url, String saveDirectory) throws Exception {
         youtube = new Youtube(url);
         this.saveDirectory = saveDirectory;
+    }
+
+
+    protected YoutubeVideoDownloader() {
+        youtube = null;
+    }
+
+    // Create a Youtube Music downloader from this.
+    public YoutubeMusicDownloader toYoutubeMusic() {
+        return new YoutubeMusicDownloader(this);
     }
 
     public <R> R accept(BaseVisitor<R> visitor) {
@@ -213,49 +241,6 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
 
-    // Gets the song title.
-    // Sometimes titles have a title of the form "artist - song name", this method will only return that song name (or the whole title if the title doesn't follow that pattern)
-    private String getSongTitle() {
-        String[] videoTitle = this.getVideoTitle().split(" - ");
-        if (videoTitle.length == 1)
-            return videoTitle[0];
-        else
-            return videoTitle[1];
-    }
-
-    // Creates a process builder used for converting audio to mp3.
-    // If addMetadata is set to true, we also add metadata to the mp3 file.
-    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata) {
-        String outputFile = saveDirectory + safeFileName(outputFilename) + ".mp3";
-        if (addMetadata)
-            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", "-metadata", "title=" + this.getSongTitle(), "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), outputFile);
-        else
-            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", outputFile);
-    }
-
-
-    // Converts a downloaded Youtube stream to a .mp3 file.
-    public void convertAudioToMp3(String outputFilename, boolean addMetadata) {
-        if (audioFilename != null) {
-            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata);
-            ffmpegProcessBuilder.redirectOutput(new File("ffmpeg.latest.log"))
-                                // .redirectError(Redirect.INHERIT);
-                                .redirectError(new File("ffmpeg.latest.log"));
-            try {
-                // ffmpegProcessBuilder.command().forEach(s -> System.out.println(s));
-                Process ffmpegProcess = ffmpegProcessBuilder.start();
-                ffmpegProcess.waitFor();
-            } catch (InterruptedException e) {
-                System.out.println("Got interrupted while ffmpeg is creating an mp3 file (how is this even possible?)");
-            } catch (IOException e) {
-                System.err.println("Error while starting ffmpeg process: " + e.toString());
-                System.err.println("Output file name was: " + outputFilename);
-                e.printStackTrace();
-            }
-        }
-    }
-
-
     // Merges two downloaded Youtube streams into one file.
     // YouTube stores its audio track as a separate itag, so we must download it separately.
     // The idea behind this is to merge the video and audio file into one so it actually becomes watchable.
@@ -278,7 +263,7 @@ public class YoutubeVideoDownloader implements Downloader {
     }
 
     // yoinked form JavaTube, removed the . replacement
-    private static String safeFileName(String s){
+    protected static String safeFileName(String s){
         return s.replaceAll("[\"'#$%*,:;<>?\\\\^|~/]", " ");
     }
 
