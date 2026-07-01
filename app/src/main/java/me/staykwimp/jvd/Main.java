@@ -36,9 +36,15 @@ import com.github.felipeucelli.javatube.exceptions.*;
 import com.technicjelle.UpdateChecker;
 
 public class Main {
-    public final static String saveDirectory = "";
+    public static String saveDirectory = "";
     public static final String workingDirectory = System.getProperty("user.dir");
-    public static final boolean deleteTempFiles = false;
+    public static boolean deleteTempFiles = true;
+    public static boolean useFFmpeg = true;
+    public static boolean obscureMetadata = false;
+    public static boolean includeMusicMetadata = true;
+    public static int ytDefaultVideoItag = -1;
+    public static int ytDefaultAudioItag = -1;
+
     public static final QueueDownloader downloader = new QueueDownloader();
     public static final Thread downloaderThread = new Thread(downloader);
 
@@ -50,14 +56,16 @@ public class Main {
 
     // to initialise the quality map, cannot be done when creating it.
     private static void initialiseQualityMap() {
-        qualityMap.put("360p", StreamQuery.Filter.builder().res("360p").progressive(false).build());
-        qualityMap.put("480p", StreamQuery.Filter.builder().res("480p").progressive(false).build());
-        qualityMap.put("720p", StreamQuery.Filter.builder().res("720p").progressive(false).build());
+        qualityMap.put("360p ", StreamQuery.Filter.builder().res("360p").progressive(false).build());
+        qualityMap.put("480p ", StreamQuery.Filter.builder().res("480p").progressive(false).build());
+        qualityMap.put("720p ", StreamQuery.Filter.builder().res("720p").progressive(false).build());
         qualityMap.put("1080p", StreamQuery.Filter.builder().res("1080p").progressive(false).build());
         qualityMap.put("1440p", StreamQuery.Filter.builder().res("1440p").progressive(false).build());
         qualityMap.put("2160p", StreamQuery.Filter.builder().res("2160p").progressive(false).build());
 
-        audioQualityMap.put("audio", StreamQuery.Filter.builder().onlyAudio(true).build());
+        audioQualityMap.put("<64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() < 64;}).build());
+        audioQualityMap.put(">64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {int bitrate = s.getBitrate(); return bitrate >= 64 && bitrate < 128;}).build());
+        audioQualityMap.put(">128kbps", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() >= 128;}).build());
     }
 
     // Gets the build date from the .jar manifest
@@ -142,7 +150,7 @@ public class Main {
         emptyArg.add("");
 
         boolean no_update_check =   cmd_args.containsKey(ArgHandler.NO_UPDATE_CHECK);
-        String saveDirectory =      cmd_args.getOrDefault(ArgHandler.SAVE_DIR, emptyArg).get(0);
+        saveDirectory =      cmd_args.getOrDefault(ArgHandler.SAVE_DIR, emptyArg).get(0);
         String saveFilename  =      cmd_args.getOrDefault(ArgHandler.SAVE_FILENAME, emptyArg).get(0);
 
         // Only enter interactive mode if -i was passed, or if only -u, -d or -f were passed.
@@ -153,14 +161,14 @@ public class Main {
         String[] downloadQueue = cmd_args.getOrDefault(ArgHandler.QUEUE_LINK, emptyArg).get(0).split(";");
 
         // Handle FFMPEG options
-        boolean disableFFmpeg = cmd_args.containsKey(ArgHandler.NO_FFMPEG);
-        boolean obscureMetadata = cmd_args.containsKey(ArgHandler.FFMPEG_OBSCURE_METADATA);
+        useFFmpeg = !cmd_args.containsKey(ArgHandler.NO_FFMPEG);
+        obscureMetadata = !cmd_args.containsKey(ArgHandler.FFMPEG_OBSCURE_METADATA);
         String ffmpegVideoCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_VIDEO_CODEC, emptyArg).get(0);
         String ffmpegAudioCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_CODEC, emptyArg).get(0);
 
         // Handle YouTube options
         boolean ytAudioOnly = cmd_args.containsKey(ArgHandler.YT_AUDIO_ONLY);
-        boolean ytMusicNoMetadata = cmd_args.containsKey(ArgHandler.YT_MUSIC_NO_METADATA);
+        includeMusicMetadata = !cmd_args.containsKey(ArgHandler.YT_MUSIC_NO_METADATA);
         String ytVideoItag = cmd_args.getOrDefault(ArgHandler.YT_VIDEO_ITAG, emptyArg).get(0);
         String ytAudioItag = cmd_args.getOrDefault(ArgHandler.YT_AUDIO_ITAG, emptyArg).get(0);
 
@@ -208,6 +216,10 @@ public class Main {
                 break;
             else if (command[0].equals("debug"))
                 CommandHandler.debugCommand();
+            else if (command[0].equals("")) {
+                // do nothing if no command is entered.
+                continue;
+            }
             else { // if no known command is entered
                 System.out.println(command[0] + " is not recognised as a command.");
                 CommandHandler.helpCommand();
