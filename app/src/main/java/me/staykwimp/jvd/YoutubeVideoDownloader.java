@@ -38,7 +38,8 @@ public class YoutubeVideoDownloader implements Downloader {
         this.saveDirectory = saveDirectory;
     }
 
-
+    // super() has to be called in constructors for subclasses.
+    // use this for full control over the protected variables.
     protected YoutubeVideoDownloader() {
         youtube = null;
     }
@@ -216,7 +217,9 @@ public class YoutubeVideoDownloader implements Downloader {
 
     public void mergeAudioAndVideoFile(String outputFilename) {
         if (videoFilename != null && audioFilename != null && videoFileExtension != null) {
-            YoutubeVideoDownloader.mergeTwoFFmpegFiles(saveDirectory + videoFilename, saveDirectory + audioFilename, saveDirectory + safeFileName(outputFilename) + videoFileExtension);
+            YoutubeVideoDownloader.mergeTwoFFmpegFiles(saveDirectory + videoFilename, saveDirectory + audioFilename, 
+                                                        saveDirectory + safeFileName((Main.saveFilename == "") ? outputFilename : Main.saveFilename) + videoFileExtension
+                                                       );
         }
     }
 
@@ -240,13 +243,40 @@ public class YoutubeVideoDownloader implements Downloader {
         return false;
     }
 
+    private static ProcessBuilder createProcessBuilder(String file1, String file2, String outputFile, String videoCodec, String audioCodec, boolean obscureMetadata) {
+        ArrayList<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand.add("ffmpeg");
+        ffmpegCommand.add("-i"); ffmpegCommand.add(file1);
+        ffmpegCommand.add("-i"); ffmpegCommand.add(file2);
+        
+        if (obscureMetadata) {
+            ffmpegCommand.add("-map_metadata"); ffmpegCommand.add("-1");
+        }
+        
+        if (audioCodec.equals("") && videoCodec.equals("")) {
+            ffmpegCommand.add("-c"); ffmpegCommand.add("copy");
+        }
+        if (!videoCodec.equals("")) {
+            ffmpegCommand.add("-c:v"); ffmpegCommand.add(videoCodec);
+        }
+        if (!audioCodec.equals("")) {
+            ffmpegCommand.add("-c:a"); ffmpegCommand.add(audioCodec);
+        }
+
+        ffmpegCommand.add("-y");
+        ffmpegCommand.add(outputFile);
+
+        ffmpegCommand.forEach(s -> System.out.print(s + ",")); System.out.println("");
+        return new ProcessBuilder(ffmpegCommand);
+    }
+
 
     // Merges two downloaded Youtube streams into one file.
     // YouTube stores its audio track as a separate itag, so we must download it separately.
     // The idea behind this is to merge the video and audio file into one so it actually becomes watchable.
     public static void mergeTwoFFmpegFiles(String file1, String file2, String outputFile) {
 
-        ProcessBuilder ffmpegProcessBuilder = new ProcessBuilder("ffmpeg", "-i", file1, "-i", file2, "-c", "copy", "-y", outputFile);
+        ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(file1, file2, outputFile, Main.ffmpegVideoCodec, Main.ffmpegAudioCodec, Main.obscureMetadata);
         ffmpegProcessBuilder.redirectOutput(new File("ffmpeg.latest.log"))
                             // .redirectError(Redirect.INHERIT)
                             .redirectError(new File("ffmpeg.latest.log"));

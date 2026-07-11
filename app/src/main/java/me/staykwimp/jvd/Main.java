@@ -36,7 +36,7 @@ import com.github.felipeucelli.javatube.exceptions.*;
 import com.technicjelle.UpdateChecker;
 
 public class Main {
-    public static String saveDirectory = "";
+    public static String saveDirectory = "", saveFilename = "", ffmpegVideoCodec = "", ffmpegAudioCodec = "", ffmpegAudioFileType = "";
     public static final String workingDirectory = System.getProperty("user.dir");
     public static boolean deleteTempFiles = true;
     public static boolean useFFmpeg = true;
@@ -46,7 +46,7 @@ public class Main {
     public static int ytDefaultAudioItag = -1;
 
     public static final QueueDownloader downloader = new QueueDownloader();
-    public static final Thread downloaderThread = new Thread(downloader);
+    public static final Thread downloaderThread = new Thread(downloader);;
 
     public static final String VERSION = "v1.3.0";
     public static final String BUILD_DATE = getBuildDate();
@@ -63,9 +63,9 @@ public class Main {
         qualityMap.put("1440p", StreamQuery.Filter.builder().res("1440p").progressive(false).build());
         qualityMap.put("2160p", StreamQuery.Filter.builder().res("2160p").progressive(false).build());
 
-        audioQualityMap.put("<64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() < 64;}).build());
-        audioQualityMap.put(">64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {int bitrate = s.getBitrate(); return bitrate >= 64 && bitrate < 128;}).build());
-        audioQualityMap.put(">128kbps", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() >= 128;}).build());
+        audioQualityMap.put("<64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() < 64000;}).build());
+        audioQualityMap.put(">64kbps ", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {int bitrate = s.getBitrate(); return bitrate >= 64000 && bitrate < 128000;}).build());
+        audioQualityMap.put(">128kbps", StreamQuery.Filter.builder().onlyAudio(true).addCustomFilter(s -> {return s.getBitrate() >= 128000;}).build());
     }
 
     // Gets the build date from the .jar manifest
@@ -134,7 +134,7 @@ public class Main {
 
         // Show youtube itags, then exit.
         if (cmd_args.containsKey(ArgHandler.YT_SHOW_ITAGS)) {
-            System.err.println("--yt-show-itags is not implemented yet.");
+            System.err.println("--yt-show-itags is not implemented yet."); // TODO: implement
             System.exit(0);
             return;
         }
@@ -151,20 +151,33 @@ public class Main {
 
         boolean no_update_check =   cmd_args.containsKey(ArgHandler.NO_UPDATE_CHECK);
         saveDirectory =      cmd_args.getOrDefault(ArgHandler.SAVE_DIR, emptyArg).get(0);
-        String saveFilename  =      cmd_args.getOrDefault(ArgHandler.SAVE_FILENAME, emptyArg).get(0);
-
-        // Only enter interactive mode if -i was passed, or if only -u, -d or -f were passed.
-        boolean interactive =       cmd_args.containsKey(ArgHandler.INTERACTIVE) 
-                                        || ((no_update_check ? 1 : 0) + (saveDirectory.length() == 0 ? 0 : 1) + (saveFilename.length() == 0 ? 0 : 1) == cmd_args.size());
-        
-        // Handle download queue
-        String[] downloadQueue = cmd_args.getOrDefault(ArgHandler.QUEUE_LINK, emptyArg).get(0).split(";");
+        saveFilename  =      cmd_args.getOrDefault(ArgHandler.SAVE_FILENAME, emptyArg).get(0);
+        deleteTempFiles =       !cmd_args.containsKey(ArgHandler.NO_DELETE_TEMPFILES);
 
         // Handle FFMPEG options
         useFFmpeg = !cmd_args.containsKey(ArgHandler.NO_FFMPEG);
         obscureMetadata = !cmd_args.containsKey(ArgHandler.FFMPEG_OBSCURE_METADATA);
-        String ffmpegVideoCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_VIDEO_CODEC, emptyArg).get(0);
-        String ffmpegAudioCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_CODEC, emptyArg).get(0);
+        ffmpegVideoCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_VIDEO_CODEC, emptyArg).get(0);
+        ffmpegAudioCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_CODEC, emptyArg).get(0);
+        ffmpegAudioFileType = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_FILE, emptyArg).get(0);
+
+        // Only enter interactive mode if -i was passed, or if only -u, -d, --no-delete-tmp or -f were passed.
+        boolean interactive =       cmd_args.containsKey(ArgHandler.INTERACTIVE) 
+                                        || ((no_update_check ? 1 : 0) + 
+                                                (saveDirectory.length() == 0 ? 0 : 1) + 
+                                                (saveFilename.length() == 0 ? 0 : 1) + 
+                                                (deleteTempFiles ? 0 : 1) +
+                                                (useFFmpeg ? 0 : 1) +
+                                                (obscureMetadata ? 0 : 1) +
+                                                (ffmpegVideoCodec.length() == 0 ? 0 : 1) +
+                                                (ffmpegAudioCodec.length() == 0 ? 0 : 1) +
+                                                (ffmpegAudioFileType.length() == 0 ? 0 : 1)
+                                                    == cmd_args.size());
+        
+        // Handle download queue
+        String[] downloadQueue = cmd_args.getOrDefault(ArgHandler.QUEUE_LINK, emptyArg).get(0).split(";");
+
+        
 
         // Handle YouTube options
         boolean ytAudioOnly = cmd_args.containsKey(ArgHandler.YT_AUDIO_ONLY);
@@ -181,13 +194,11 @@ public class Main {
             return;
         }
 
-        
 
         welcome(!no_update_check);
-        
-        
-        
 
+        System.out.println(ffmpegVideoCodec);
+        
         downloaderThread.start();
         
         Scanner scan = new Scanner(System.in);

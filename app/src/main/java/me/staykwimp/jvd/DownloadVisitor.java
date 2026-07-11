@@ -73,9 +73,10 @@ public class DownloadVisitor implements BaseVisitor<Void> {
         }
 
         downloader.downloadAudio("audio");
-        downloader.mergeAudioAndVideoFile(downloader.getVideoTitle());
-
-        downloader.deleteTemporaryDownloadFiles();
+        if (Main.useFFmpeg) {
+            downloader.mergeAudioAndVideoFile(downloader.getVideoTitle());
+            downloader.deleteTemporaryDownloadFiles();
+        }
         return null;
     }
 
@@ -95,8 +96,10 @@ public class DownloadVisitor implements BaseVisitor<Void> {
         }
         
         boolean thumbnailAvailable = downloader.saveThumbnail("album.png");
-        downloader.convertAudioToMp3(downloader.getVideoTitle(), true, thumbnailAvailable);
-        downloader.deleteTemporaryDownloadFiles();
+        if (Main.useFFmpeg) {
+            downloader.convertAudioToMp3(downloader.getVideoTitle(), Main.includeMusicMetadata, Main.obscureMetadata, thumbnailAvailable);
+            downloader.deleteTemporaryDownloadFiles();
+        }
         return null;
     }
 

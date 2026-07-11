@@ -20,6 +20,7 @@ package me.staykwimp.jvd;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
         super(url, saveDirectory);
     }
 
+    // constructed by calling toYoutubeMusic on a YoutubeVideoDownloader
     protected YoutubeMusicDownloader(YoutubeVideoDownloader downloader) {
         super();
         this.youtube = downloader.youtube;
@@ -109,37 +111,35 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
     // Creates a process builder used for converting audio to mp3.
     // If addMetadata is set to true, we also add metadata to the mp3 file.
     // We only add album art if and only if addMetadata and addThumbnail are true.
-    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata, boolean addThumbnail) {
-        String outputFile = saveDirectory + safeFileName(outputFilename) + ".mp3";
-        if (addMetadata)
-            if (addThumbnail)
-                return new ProcessBuilder("ffmpeg", 
-                                            "-i", (saveDirectory + audioFilename), 
-                                            "-i", (saveDirectory + thumbnailFilename),
-                                            "-c:a", "mp3", 
-                                            "-y", 
-                                            "-map", "0",
-                                            "-map", "1",
-                                            "-metadata", "title=" + this.getSongTitle(), 
-                                            "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), 
-                                            outputFile);
-            else
-                return new ProcessBuilder("ffmpeg", 
-                                            "-i", (saveDirectory + audioFilename), 
-                                            "-c:a", "mp3", 
-                                            "-y", 
-                                            "-metadata", "title=" + this.getSongTitle(), 
-                                            "-metadata", "artist=" + this.getChannelName().replace(" - Topic", ""), 
-                                            outputFile);
-        else
-            return new ProcessBuilder("ffmpeg", "-i", (saveDirectory + audioFilename), "-c:a", "mp3", "-y", outputFile);
+    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata, boolean obscureMetadata, boolean addThumbnail) {
+        String outputFile = saveDirectory + safeFileName(outputFilename) + "." + (Main.ffmpegAudioFileType.length() == 0 ? "mp3" : Main.ffmpegAudioFileType);
+        ArrayList<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand.add("ffmpeg");
+        ffmpegCommand.add("-i"); ffmpegCommand.add(saveDirectory + audioFilename);
+        if (addThumbnail) {
+            ffmpegCommand.add("-i"); ffmpegCommand.add(saveDirectory + thumbnailFilename);
+            ffmpegCommand.add("-map"); ffmpegCommand.add("0");
+            ffmpegCommand.add("-map"); ffmpegCommand.add("1");
+        }
+        if (addMetadata) {
+            ffmpegCommand.add("-metadata"); ffmpegCommand.add("title=" + this.getSongTitle());
+            ffmpegCommand.add("-metadata"); ffmpegCommand.add("artist=" + this.getChannelName().replace(" - Topic", ""));
+        }
+        if (obscureMetadata) {
+            ffmpegCommand.add("-map_metadata"); ffmpegCommand.add("-1");
+        }
+        ffmpegCommand.add("-c:a"); ffmpegCommand.add((Main.ffmpegAudioCodec.equals("")) ? "mp3" : Main.ffmpegAudioCodec);
+        ffmpegCommand.add("-y");
+        ffmpegCommand.add(outputFile);
+
+        return new ProcessBuilder(ffmpegCommand);
     }
 
     // Converts a downloaded Youtube stream to a .mp3 file.
-    public void convertAudioToMp3(String outputFilename, boolean addMetadata, boolean addThumbnail) {
+    public void convertAudioToMp3(String outputFilename, boolean addMetadata, boolean obscureMetadata, boolean addThumbnail) {
         System.out.println("audioFilename = " + audioFilename);
         if (audioFilename != null) {
-            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata, addThumbnail);
+            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata, obscureMetadata, addThumbnail);
             File outputFile = new File("ffmpeg.latest.log");
             ffmpegProcessBuilder
                                 // .redirectOutput(Redirect.INHERIT)

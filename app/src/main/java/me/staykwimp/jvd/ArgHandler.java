@@ -34,11 +34,13 @@ public class ArgHandler {
     public static final Integer QUEUE_LINK = 10;
     public static final Integer SAVE_DIR = 11;
     public static final Integer SAVE_FILENAME = 12;
+    public static final Integer NO_DELETE_TEMPFILES = 13;
 
     // Category 2x: FFMPEG options
     public static final Integer NO_FFMPEG = 20;
     public static final Integer FFMPEG_VIDEO_CODEC = 21;
     public static final Integer FFMPEG_AUDIO_CODEC = 22;
+    public static final Integer FFMPEG_AUDIO_FILE  = 24;
     public static final Integer FFMPEG_OBSCURE_METADATA = 23;
 
     // Category 3x: YouTube download options
@@ -81,10 +83,12 @@ public class ArgHandler {
                 codeMap.put("queue", QUEUE_LINK);
                 codeMap.put("save-dir", SAVE_DIR);
                 codeMap.put("save-name", SAVE_FILENAME);
+                codeMap.put("no-delete-tmp", NO_DELETE_TEMPFILES);
 
                 codeMap.put("no-ffmpeg", NO_FFMPEG);
                 codeMap.put("video-codec", FFMPEG_VIDEO_CODEC);
                 codeMap.put("audio-codec", FFMPEG_AUDIO_CODEC);
+                codeMap.put("audio-file", FFMPEG_AUDIO_FILE);
                 codeMap.put("obscure-metadata", FFMPEG_OBSCURE_METADATA);
 
                 codeMap.put("yt-show-itags", YT_SHOW_ITAGS);
@@ -101,10 +105,12 @@ public class ArgHandler {
             countMap.put(QUEUE_LINK, 1);
             countMap.put(SAVE_DIR, 1);
             countMap.put(SAVE_FILENAME, 1);
+            countMap.put(NO_DELETE_TEMPFILES, 0);
             
             countMap.put(NO_FFMPEG, 0);
             countMap.put(FFMPEG_VIDEO_CODEC, 1);
             countMap.put(FFMPEG_AUDIO_CODEC, 1);
+            countMap.put(FFMPEG_AUDIO_FILE, 1);
             countMap.put(FFMPEG_OBSCURE_METADATA, 0);
             
             countMap.put(YT_SHOW_ITAGS, 0);
@@ -227,28 +233,33 @@ public class ArgHandler {
                 "   -q  --queue <URLs>          Queue URLs for downloading. Each URL ought to be separated by a ';' character.\n\n" +
                 "   -d  --save-dir <DIR>        Save files to this directory.\n\n" +
                 "   -f  --save-name <NAME>      Final output files will be named NAME.\n\n" +
+                "       --no-delete-tmp         Do not delete temporary download files.\n\n" + 
 
                 "\nFFMPEG-specific arguments are:\n\n" + 
                 "   -n  --no-ffmpeg             Do not use ffmpeg.\n\n" + 
                 "   -v  --video-codec <CODEC>   Re-encode video with CODEC. For a list of codecs, run `ffmpeg -encoders`.\n\n" + 
                 "   -a  --audio-codec <CODEC>   Re-encode audio with CODEC. For a list of codecs, run `ffmpeg -encoders`.\n\n" + 
+                "       --audio-file <TYPE>     Save audio-only files (such as .mp3, .flac, etc.) as this file type.\n\n" + 
                 "   -o  --obscure-metadata      Obscure final file metadata, such as encoder used and creation time.\n\n" + 
 
                 "\nYouTube-specific arguments are:\n\n" + 
                 "   --yt-show-itags         Show the values of known ITAGs, and then quit the application.\n\n" + 
-                "   --yt-video-itag <ITAG>  Specify the video ITAG to download. Use --yt-music to download audio-only,\n" + 
+                "   --yt-video-itag <ITAG>  Specify the default video ITAG to download. Use --yt-music to download audio-only,\n" + 
                 "                           instead of passing itag 251. Use --yt-show-itags to get a list of available ITAGs.\n" + 
-                "                           When this flag is not set, the best video quality is downloaded.\n\n" + 
-                "   --yt-audio-itag <ITAG>  Specify the audio ITAG to download. Use --yt-music to download audio-only,\n" + 
+                "                           When this flag is not set, the best video quality is downloaded in non-interactive mode.\n\n" + 
+                "   --yt-audio-itag <ITAG>  Specify the defult audio ITAG to download. Use --yt-music to download audio-only,\n" + 
                 "                           instead of passing itag 251. Use --yt-show-itags to get a list of available ITAGs.\n" + 
-                "                           When this flag is not set, the best audio quality is downloaded.\n\n" + 
-                "   --yt-music              Download audio-only (saves file as mp3).\n\n" + 
-                "   --yt-no-metadata        Do not add additional metadata to the final file, such as title, author, and thumbnail.\n" + 
-                "                           Only useful in combination with --yt-music.\n\n" + 
+                "                           When this flag is not set, the best audio quality is downloaded in non-interactive mode.\n\n" + 
+                "   --yt-music              Only download audio. This essentially makes it that each YouTube entry is\n" +
+                "                           interpreted as YouTube Music.\n\n" +  
+                "   --yt-no-metadata        Do not add additional metadata to the final file, such as title, author, and thumbnail.\n\n" + 
 
                 "\n\nEXAMPLES\n\n" +
                 "Download a YouTube video:\n" + 
-                "   jvd -q https://www.youtube.com/watch?v=Ja_AOeWKMEs \n\n" +
+                "   jvd -q https://www.youtube.com/watch?v=Ja_AOeWKMEs\n\n" +
+                "Download YouTube music audio and save it as an ogg vorbis file:\n" +
+                "   jvd -q https://music.youtube.com/watch?v=9kIv6vVRKpw --yt-music --audio-codec libvorbis --audio-file ogg\n\n" +
+
                 "\nFor convenience, arugments such as -i and -u (with a single -) can be combined into one as follows: -iu.\n" +
                 "Single-letter arguments which take one or more arguments can be combined as follows: -us videos.\n" +
                 "In particular, when combining multiple single-lettered arguments which take at least one argument, \n" +
