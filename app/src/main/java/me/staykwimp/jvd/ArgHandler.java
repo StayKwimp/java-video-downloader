@@ -28,6 +28,7 @@ public class ArgHandler {
     public static final Integer SHOW_HELP = 1;
     public static final Integer INTERACTIVE = 2;
     public static final Integer NO_UPDATE_CHECK = 3;
+    public static final Integer RUN_TESTS = 4;
     
 
     // Category 1x: general program configuration
@@ -69,6 +70,7 @@ public class ArgHandler {
                 codeMap.put("q", QUEUE_LINK);
                 codeMap.put("d", SAVE_DIR);
                 codeMap.put("f", SAVE_FILENAME);
+                codeMap.put("t", RUN_TESTS);
                 
                 codeMap.put("n", NO_FFMPEG);
                 codeMap.put("v", FFMPEG_VIDEO_CODEC);
@@ -84,6 +86,7 @@ public class ArgHandler {
                 codeMap.put("save-dir", SAVE_DIR);
                 codeMap.put("save-name", SAVE_FILENAME);
                 codeMap.put("no-delete-tmp", NO_DELETE_TEMPFILES);
+                codeMap.put("run-tests", RUN_TESTS);
 
                 codeMap.put("no-ffmpeg", NO_FFMPEG);
                 codeMap.put("video-codec", FFMPEG_VIDEO_CODEC);
@@ -106,6 +109,7 @@ public class ArgHandler {
             countMap.put(SAVE_DIR, 1);
             countMap.put(SAVE_FILENAME, 1);
             countMap.put(NO_DELETE_TEMPFILES, 0);
+            countMap.put(RUN_TESTS, 0);
             
             countMap.put(NO_FFMPEG, 0);
             countMap.put(FFMPEG_VIDEO_CODEC, 1);
@@ -234,6 +238,7 @@ public class ArgHandler {
                 "   -d  --save-dir <DIR>        Save files to this directory.\n\n" +
                 "   -f  --save-name <NAME>      Final output files will be named NAME.\n\n" +
                 "       --no-delete-tmp         Do not delete temporary download files.\n\n" + 
+                "   -t  --run-tests             Run some tests. These are defined in Tests.java. The program exists after running the tests.\n\n" +
 
                 "\nFFMPEG-specific arguments are:\n\n" + 
                 "   -n  --no-ffmpeg             Do not use ffmpeg.\n\n" + 

@@ -111,16 +111,11 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
     // Creates a process builder used for converting audio to mp3.
     // If addMetadata is set to true, we also add metadata to the mp3 file.
     // We only add album art if and only if addMetadata and addThumbnail are true.
-    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata, boolean obscureMetadata, boolean addThumbnail) {
+    private ProcessBuilder createProcessBuilder(String outputFilename, boolean addMetadata, boolean obscureMetadata) {
         String outputFile = saveDirectory + safeFileName(outputFilename) + "." + (Main.ffmpegAudioFileType.length() == 0 ? "mp3" : Main.ffmpegAudioFileType);
         ArrayList<String> ffmpegCommand = new ArrayList<>();
         ffmpegCommand.add("ffmpeg");
         ffmpegCommand.add("-i"); ffmpegCommand.add(saveDirectory + audioFilename);
-        if (addThumbnail) {
-            ffmpegCommand.add("-i"); ffmpegCommand.add(saveDirectory + thumbnailFilename);
-            ffmpegCommand.add("-map"); ffmpegCommand.add("0");
-            ffmpegCommand.add("-map"); ffmpegCommand.add("1");
-        }
         if (addMetadata) {
             ffmpegCommand.add("-metadata"); ffmpegCommand.add("title=" + this.getSongTitle());
             ffmpegCommand.add("-metadata"); ffmpegCommand.add("artist=" + this.getChannelName().replace(" - Topic", ""));
@@ -128,18 +123,41 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
         if (obscureMetadata) {
             ffmpegCommand.add("-map_metadata"); ffmpegCommand.add("-1");
         }
-        ffmpegCommand.add("-c:a"); ffmpegCommand.add((Main.ffmpegAudioCodec.equals("")) ? "mp3" : Main.ffmpegAudioCodec);
+        ffmpegCommand.add("-c:a"); ffmpegCommand.add((Main.ffmpegAudioCodec.equals("")) ? "libmp3lame" : Main.ffmpegAudioCodec);
         ffmpegCommand.add("-y");
         ffmpegCommand.add(outputFile);
 
         return new ProcessBuilder(ffmpegCommand);
     }
 
+    /*
+        Separate command for adding album art to .mp3 files.
+    */
+    private ProcessBuilder thumbnailProcessBuilder(String inputFilename, String outputFilename) {
+        String outputFile = saveDirectory + safeFileName(outputFilename) + "." + (Main.ffmpegAudioFileType.length() == 0 ? "mp3" : Main.ffmpegAudioFileType);
+        ArrayList<String> ffmpegCommand = new ArrayList<>();
+        ffmpegCommand.add("ffmpeg");
+        ffmpegCommand.add("-i"); ffmpegCommand.add(inputFilename);
+        ffmpegCommand.add("-i"); ffmpegCommand.add(saveDirectory + thumbnailFilename);
+        ffmpegCommand.add("-map"); ffmpegCommand.add("0");
+        ffmpegCommand.add("-map"); ffmpegCommand.add("1");
+        ffmpegCommand.add("-id3v2_version"); ffmpegCommand.add("4");
+
+        // This crops the album art into a 1:1 image (equal height and width), only taking the middle part of the image (the default for Youtube thumbnail album art).
+        ffmpegCommand.add("-vf"); ffmpegCommand.add("crop=in_h:in_h:(in_w-in_h)/2:0"); // assumes the thumbnail width <= height... ffmpeg will probably not fail right?
+
+        ffmpegCommand.add("-c:a"); ffmpegCommand.add("copy");
+        ffmpegCommand.add("-y");
+        ffmpegCommand.add(outputFile);
+        return new ProcessBuilder(ffmpegCommand);
+    }
+    
+
     // Converts a downloaded Youtube stream to a .mp3 file.
     public void convertAudioToMp3(String outputFilename, boolean addMetadata, boolean obscureMetadata, boolean addThumbnail) {
-        System.out.println("audioFilename = " + audioFilename);
+        // System.out.println("audioFilename = " + audioFilename);
         if (audioFilename != null) {
-            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(outputFilename, addMetadata, obscureMetadata, addThumbnail);
+            ProcessBuilder ffmpegProcessBuilder = createProcessBuilder(addThumbnail ? "tmp" : outputFilename, addMetadata, obscureMetadata);
             File outputFile = new File("ffmpeg.latest.log");
             ffmpegProcessBuilder
                                 // .redirectOutput(Redirect.INHERIT)
@@ -150,6 +168,17 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
                 // ffmpegProcessBuilder.command().forEach(s -> System.out.println(s));
                 Process ffmpegProcess = ffmpegProcessBuilder.start();
                 ffmpegProcess.waitFor();
+
+                if (addThumbnail) {
+                    outputFile = new File("ffmpeg-mp3.latest.log");
+                    ProcessBuilder ffmpegConversionPB = thumbnailProcessBuilder("tmp." + (Main.ffmpegAudioFileType.length() == 0 ? "mp3" : Main.ffmpegAudioFileType), outputFilename);
+                    ffmpegConversionPB
+                                        .redirectOutput(outputFile)
+                                        .redirectError(outputFile);
+                    
+                    Process ffmpegConversionProcess = ffmpegConversionPB.start();
+                    ffmpegConversionProcess.waitFor();
+                }
             } catch (InterruptedException e) {
                 System.err.println("Got interrupted while ffmpeg is creating an mp3 file (how is this even possible?)");
             } catch (IOException e) {
@@ -169,8 +198,9 @@ public class YoutubeMusicDownloader extends YoutubeVideoDownloader {
 
         boolean success = super.deleteTemporaryDownloadFiles();
         
+        // remove files from downloading thumbnail as well.
         if (thumbnailFilename != null) {
-            return success & new File(saveDirectory + thumbnailFilename).delete();
+            return success & new File(saveDirectory + thumbnailFilename).delete() & new File("tmp." + (Main.ffmpegAudioFileType.length() == 0 ? "mp3" : Main.ffmpegAudioFileType)).delete();
         }
         else return success;
     }

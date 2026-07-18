@@ -21,13 +21,20 @@ package me.staykwimp.jvd;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.json.JSONException;
+
 public class YoutubeMusicPlaylistDownloader extends YoutubePlaylistDownloader {
     public <R> R accept(BaseVisitor<R> visitor) {
         return visitor.visit(this);
     }
 
-    public YoutubeMusicPlaylistDownloader(String url) {
+    public YoutubeMusicPlaylistDownloader(String url) throws JSONException, NoSuchFieldException, IllegalAccessException {
         super(url);
+    }
+
+    protected YoutubeMusicPlaylistDownloader(YoutubePlaylistDownloader p) {
+        super();
+        this.playlist = p.playlist;
     }
 
 
@@ -40,12 +47,13 @@ public class YoutubeMusicPlaylistDownloader extends YoutubePlaylistDownloader {
     // Gets YoutubeMusicDownloaders from a playlist.
     public ArrayList<YoutubeMusicDownloader> getMusicDownloadersFromPlaylist(String saveDirectory) {
         ArrayList<YoutubeMusicDownloader> downloaderArray = new ArrayList<>(getPlaylistSize());
-        for (String url: this.getPlaylistUrls()) {
+        Random randomGen = new Random();
+        for (String url: getPlaylistUrls()) {
             try {
                 YoutubeMusicDownloader yvd = new YoutubeMusicDownloader(url, saveDirectory);
                 downloaderArray.add(yvd);
                 System.out.println("Found video: " + yvd);
-                Thread.sleep(new Random().nextInt(200) + 200); // random delay between adding videos
+                Thread.sleep(randomGen.nextInt(300) + 300); // random delay between adding videos
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -266,7 +266,7 @@ public class YoutubeVideoDownloader implements Downloader {
         ffmpegCommand.add("-y");
         ffmpegCommand.add(outputFile);
 
-        ffmpegCommand.forEach(s -> System.out.print(s + ",")); System.out.println("");
+        // ffmpegCommand.forEach(s -> System.out.print(s + ",")); System.out.println("");
         return new ProcessBuilder(ffmpegCommand);
     }
 
@@ -285,7 +285,7 @@ public class YoutubeVideoDownloader implements Downloader {
             // System.out.println(ffmpegProcess.info());
             ffmpegProcess.waitFor();
         } catch (InterruptedException e) {
-            System.out.println("Got interrupted while ffmpeg is merging files (how is this even possible?)");
+            System.out.println("Got interrupted while ffmpeg is merging files (probably due to user Ctrl+C interrupt)");
         } catch (IOException e) {
             System.err.println("Error while starting ffmpeg process: " + e.toString());
             e.printStackTrace();

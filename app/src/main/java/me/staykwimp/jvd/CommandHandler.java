@@ -78,7 +78,7 @@ public class CommandHandler {
         if (!assertEnoughArguments(command, 2))
             return;
         
-        if (command[1].contains("youtube.com") && command[1].contains("playlist")) {
+        if (command[1].contains("youtube.com") && command[1].contains("list")) {
             Main.downloadYoutubePlaylist(command[1], scan);
         }
         else

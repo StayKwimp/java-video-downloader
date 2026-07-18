@@ -95,7 +95,8 @@ public class DownloadVisitor implements BaseVisitor<Void> {
             }
         }
         
-        boolean thumbnailAvailable = downloader.saveThumbnail("album.png");
+        
+        boolean thumbnailAvailable = (Main.includeMusicMetadata) ? downloader.saveThumbnail("album.png") : false;
         if (Main.useFFmpeg) {
             downloader.convertAudioToMp3(downloader.getVideoTitle(), Main.includeMusicMetadata, Main.obscureMetadata, thumbnailAvailable);
             downloader.deleteTemporaryDownloadFiles();

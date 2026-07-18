@@ -117,6 +117,11 @@ public class Main {
     public static void main(String[] args) {
         HashMap<Integer, LinkedList<String>> cmd_args = ArgHandler.handleArgs(args);
         
+        if (cmd_args.containsKey(ArgHandler.RUN_TESTS)) {
+            Tests.runTests();
+            System.exit(0);
+            return;
+        }
         
         // abort if there are errors while parsing arguments.
         if (cmd_args.containsKey(ArgHandler.PARSE_ERROR)) {
@@ -161,6 +166,9 @@ public class Main {
         ffmpegAudioCodec = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_CODEC, emptyArg).get(0);
         ffmpegAudioFileType = cmd_args.getOrDefault(ArgHandler.FFMPEG_AUDIO_FILE, emptyArg).get(0);
 
+        // YouTube option which doesn't disable interactive mode
+        includeMusicMetadata = !cmd_args.containsKey(ArgHandler.YT_MUSIC_NO_METADATA);
+
         // Only enter interactive mode if -i was passed, or if only -u, -d, --no-delete-tmp or -f were passed.
         boolean interactive =       cmd_args.containsKey(ArgHandler.INTERACTIVE) 
                                         || ((no_update_check ? 1 : 0) + 
@@ -171,7 +179,8 @@ public class Main {
                                                 (obscureMetadata ? 0 : 1) +
                                                 (ffmpegVideoCodec.length() == 0 ? 0 : 1) +
                                                 (ffmpegAudioCodec.length() == 0 ? 0 : 1) +
-                                                (ffmpegAudioFileType.length() == 0 ? 0 : 1)
+                                                (ffmpegAudioFileType.length() == 0 ? 0 : 1) +
+                                                (includeMusicMetadata ? 0 : 1)
                                                     == cmd_args.size());
         
         // Handle download queue
@@ -181,7 +190,6 @@ public class Main {
 
         // Handle YouTube options
         boolean ytAudioOnly = cmd_args.containsKey(ArgHandler.YT_AUDIO_ONLY);
-        includeMusicMetadata = !cmd_args.containsKey(ArgHandler.YT_MUSIC_NO_METADATA);
         String ytVideoItag = cmd_args.getOrDefault(ArgHandler.YT_VIDEO_ITAG, emptyArg).get(0);
         String ytAudioItag = cmd_args.getOrDefault(ArgHandler.YT_AUDIO_ITAG, emptyArg).get(0);
 
@@ -301,6 +309,7 @@ public class Main {
     }
 
 
+
     // Downloads a Youtube playlist
     public static void downloadYoutubePlaylist(String url, Scanner scan) {
         YoutubePlaylistDownloader playlist;
@@ -317,24 +326,38 @@ public class Main {
         System.out.println(playlist.accept(new InfoVisitor()));
         System.out.println("\n");
 
+        // TODO: add itag list
 
         int itag = getItagInput("\nEnter default itag for whole playlist ('audio' for only audio) > ", scan, true);
 
         // itag -1 means audio-only
         boolean audioOnly = itag == -1;
         if (audioOnly) {
+            YoutubeMusicPlaylistDownloader musicPlaylist = playlist.toYoutubeMusic();
+
             System.out.println("Selected audio-only download, please select a default audio itag for the whole playlist.");
 
+            // TODO: expand itag list
+
+            System.out.println("Itag 251 corresponds to ~128kbps aac.");
+
             itag = getItagInput("\nEnter itag > ", scan, false);
+
+            musicPlaylist.accept(new AddToQueueVisitor(itag, saveDirectory, (i, d) -> {
+                System.out.println(d.accept(new InfoVisitor()));
+                System.out.println(d.accept(new AvailableQualityVisitor(qualityMap, audioQualityMap)));
+                return getItagInput("\nItag " + i + " is not valid for video '" + d.getVideoTitle() + "'!\nPlease enter a new itag > ", scan, audioOnly);
+            }));
+        }
+        else {
+            playlist.accept(new AddToQueueVisitor(itag, saveDirectory, (i, d) -> {
+                System.out.println(d.accept(new InfoVisitor()));
+                System.out.println(d.accept(new AvailableQualityVisitor(qualityMap, audioQualityMap)));
+                return getItagInput("\nItag " + i + " is not valid for video '" + d.getVideoTitle() + "'!\nPlease enter a new itag > ", scan, audioOnly);
+            }));
         }
 
-        
 
-        playlist.accept(new AddToQueueVisitor(itag, saveDirectory, (i, d) -> {
-            System.out.println(d.accept(new InfoVisitor()));
-            System.out.println(d.accept(new AvailableQualityVisitor(qualityMap, audioQualityMap)));
-            return getItagInput("\nItag " + i + " is not valid for video '" + d.getVideoTitle() + "'!\nPlease enter a new itag > ", scan, audioOnly);
-        }));
 
         System.out.println("Playlist added to queue. \nUse command 'view' to view the current queue, and use 'show-progress' to view the download progress.");
     }
